@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16.2
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: backend_challenge_db
+      POSTGRES_USER: backend_challenge_user
+      POSTGRES_PASSWORD: pg_b4ckendCh@llenge_ruan
+      
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+      
+  backendchallenge-mq:
+    image: "rabbitmq:management"
+    container_name: "backendchallenge-mq"
+    hostname: "backendchallenge-mq"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+    volumes:
+      - ./.containers/data/:/var/lib/rabbitmq/mnesia
+      - ./.containers/log/:/var/log/rabbitmq
+
+volumes:
+  postgres_data:
+    driver: local
