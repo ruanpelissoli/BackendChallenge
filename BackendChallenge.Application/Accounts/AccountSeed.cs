@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
 namespace BackendChallenge.Application.Accounts;
-public class Seed(
+public class AccountSeed(
     RoleManager<IdentityRole> roleManager,
     UserManager<Account> userManager)
 {
@@ -21,18 +21,11 @@ public class Seed(
         }
 
         var adminUser = new Account { UserName = "admin", Email = "admin@example.com" };
-        var delivererUser = new Account { UserName = "deliveryman", Email = "deliveryman@example.com" };
 
         if (await _userManager.FindByNameAsync(adminUser.UserName) == null)
         {
             await _userManager.CreateAsync(adminUser, "Pass123!");
             await _userManager.AddToRoleAsync(adminUser, Roles.Admin);
-        }
-
-        if (await _userManager.FindByNameAsync(delivererUser.UserName) == null)
-        {
-            await _userManager.CreateAsync(delivererUser, "Pass123!");
-            await _userManager.AddToRoleAsync(delivererUser, Roles.Deliveryman);
         }
     }
 }

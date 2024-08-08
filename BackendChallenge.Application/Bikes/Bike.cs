@@ -11,7 +11,7 @@ public class Bike : Entity<Guid>
     {
         Year = year;
         Model = model;
-        LicensePlate = licensePlate;
+        LicensePlate = licensePlate.ToUpper();
     }
 
     protected Bike() { }

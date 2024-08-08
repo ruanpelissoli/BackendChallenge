@@ -1,9 +1,9 @@
-﻿using BackendChallenge.CrossCutting.Endpoints;
+﻿using BackendChallenge.Application.Accounts;
+using BackendChallenge.CrossCutting.Endpoints;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 
 namespace BackendChallenge.Application.Bikes.UseCases;
 public static class DeleteBike
@@ -13,7 +13,7 @@ public static class DeleteBike
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapDelete("bikes/{id}", Handler)
-               .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" })
+               .RequireAuthorization(new AuthorizeAttribute { Roles = Roles.Admin })
                .WithTags("Bikes");
         }
     }
@@ -22,7 +22,7 @@ public static class DeleteBike
        Guid id,
        ApplicationDbContext context)
     {
-        var bike = await context.Bikes.FirstOrDefaultAsync(b => b.Id == id);
+        var bike = await context.Bikes.FindAsync(id);
 
         if (bike is null)
             return Results.NotFound();

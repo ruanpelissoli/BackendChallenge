@@ -1,4 +1,5 @@
-﻿using BackendChallenge.Application.Bikes.Events;
+﻿using BackendChallenge.Application.Accounts;
+using BackendChallenge.Application.Bikes.Events;
 using BackendChallenge.CrossCutting.Endpoints;
 using FluentValidation;
 using MassTransit;
@@ -28,7 +29,7 @@ public static class RegisterBike
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapPost("bikes", Handler)
-               .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" })
+               .RequireAuthorization(new AuthorizeAttribute { Roles = Roles.Admin })
                .WithTags("Bikes");
         }
     }

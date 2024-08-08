@@ -20,9 +20,15 @@ public class DependecyInstaller : IDependencyInjectionInstaller
         services.AddDbContext<IdentityDbContext>(options =>
             options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention());
 
-        services.AddIdentity<Account, IdentityRole>()
-             .AddEntityFrameworkStores<IdentityDbContext>()
-             .AddDefaultTokenProviders();
+        services.AddIdentity<Account, IdentityRole>(options =>
+        {
+            options.SignIn.RequireConfirmedEmail = false;
+            options.SignIn.RequireConfirmedAccount = false;
+            options.SignIn.RequireConfirmedPhoneNumber = false;
+            options.User.RequireUniqueEmail = true;
+        })
+        .AddEntityFrameworkStores<IdentityDbContext>()
+        .AddDefaultTokenProviders();
 
         services.AddAuthentication(options =>
         {
@@ -42,7 +48,7 @@ public class DependecyInstaller : IDependencyInjectionInstaller
             };
         });
 
-        services.AddScoped<Seed>();
+        services.AddScoped<AccountSeed>();
 
         services.AddAuthorization();
         services.AddAntiforgery();
@@ -62,7 +68,7 @@ public static class WebApplicationExtensions
         var dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
         dbContext.Database.Migrate();
 
-        var seeder = scope.ServiceProvider.GetRequiredService<Seed>();
+        var seeder = scope.ServiceProvider.GetRequiredService<AccountSeed>();
         seeder.SeedAsync().GetAwaiter().GetResult();
 
         return app;

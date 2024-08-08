@@ -3,6 +3,7 @@ using System;
 using BackendChallenge.Application;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BackendChallenge.Application.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240808175324_AddRentalEntities")]
+    partial class AddRentalEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,74 +24,6 @@ namespace BackendChallenge.Application.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("BackendChallenge.Application.Accounts.Account", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("text")
-                        .HasColumnName("id");
-
-                    b.Property<int>("AccessFailedCount")
-                        .HasColumnType("integer")
-                        .HasColumnName("access_failed_count");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .HasColumnType("text")
-                        .HasColumnName("concurrency_stamp");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("text")
-                        .HasColumnName("email");
-
-                    b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("boolean")
-                        .HasColumnName("email_confirmed");
-
-                    b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("boolean")
-                        .HasColumnName("lockout_enabled");
-
-                    b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("lockout_end");
-
-                    b.Property<string>("NormalizedEmail")
-                        .HasColumnType("text")
-                        .HasColumnName("normalized_email");
-
-                    b.Property<string>("NormalizedUserName")
-                        .HasColumnType("text")
-                        .HasColumnName("normalized_user_name");
-
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("text")
-                        .HasColumnName("password_hash");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("text")
-                        .HasColumnName("phone_number");
-
-                    b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("boolean")
-                        .HasColumnName("phone_number_confirmed");
-
-                    b.Property<string>("SecurityStamp")
-                        .HasColumnType("text")
-                        .HasColumnName("security_stamp");
-
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("boolean")
-                        .HasColumnName("two_factor_enabled");
-
-                    b.Property<string>("UserName")
-                        .HasColumnType("text")
-                        .HasColumnName("user_name");
-
-                    b.HasKey("Id")
-                        .HasName("pk_asp_net_users");
-
-                    b.ToTable("AspNetUsers", (string)null);
-                });
 
             modelBuilder.Entity("BackendChallenge.Application.Bikes.Bike", b =>
                 {
@@ -131,11 +66,6 @@ namespace BackendChallenge.Application.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<string>("AccountId")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("account_id");
-
                     b.Property<DateTime>("Birthdate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("birthdate");
@@ -171,10 +101,6 @@ namespace BackendChallenge.Application.Migrations
                     b.HasKey("Id")
                         .HasName("pk_delivery_people");
 
-                    b.HasIndex("AccountId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_delivery_people_account_id");
-
                     b.HasIndex("CnhNumber")
                         .IsUnique()
                         .HasDatabaseName("ix_delivery_people_cnh_number");
@@ -201,10 +127,6 @@ namespace BackendChallenge.Application.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("duration_in_days");
 
-                    b.Property<decimal>("FineCostPercentagePerDay")
-                        .HasColumnType("numeric")
-                        .HasColumnName("fine_cost_percentage_per_day");
-
                     b.HasKey("Id")
                         .HasName("pk_plans");
 
@@ -217,10 +139,6 @@ namespace BackendChallenge.Application.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
-
-                    b.Property<Guid>("BikeId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("bike_id");
 
                     b.Property<Guid>("DeliverymanId")
                         .HasColumnType("uuid")
@@ -238,15 +156,8 @@ namespace BackendChallenge.Application.Migrations
                         .HasColumnType("date")
                         .HasColumnName("start_date");
 
-                    b.Property<decimal>("TotalCost")
-                        .HasColumnType("numeric")
-                        .HasColumnName("total_cost");
-
                     b.HasKey("Id")
                         .HasName("pk_rentals");
-
-                    b.HasIndex("BikeId")
-                        .HasDatabaseName("ix_rentals_bike_id");
 
                     b.HasIndex("DeliverymanId")
                         .HasDatabaseName("ix_rentals_deliveryman_id");
@@ -257,27 +168,8 @@ namespace BackendChallenge.Application.Migrations
                     b.ToTable("rentals", (string)null);
                 });
 
-            modelBuilder.Entity("BackendChallenge.Application.Delivery.Deliveryman", b =>
-                {
-                    b.HasOne("BackendChallenge.Application.Accounts.Account", "Account")
-                        .WithOne()
-                        .HasForeignKey("BackendChallenge.Application.Delivery.Deliveryman", "AccountId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_delivery_people_asp_net_users_account_id");
-
-                    b.Navigation("Account");
-                });
-
             modelBuilder.Entity("BackendChallenge.Application.Rentals.Rental", b =>
                 {
-                    b.HasOne("BackendChallenge.Application.Bikes.Bike", "Bike")
-                        .WithMany()
-                        .HasForeignKey("BikeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_rentals_bikes_bike_id");
-
                     b.HasOne("BackendChallenge.Application.Delivery.Deliveryman", "Deliveryman")
                         .WithMany()
                         .HasForeignKey("DeliverymanId")
@@ -291,8 +183,6 @@ namespace BackendChallenge.Application.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_rentals_plans_plan_id");
-
-                    b.Navigation("Bike");
 
                     b.Navigation("Deliveryman");
 

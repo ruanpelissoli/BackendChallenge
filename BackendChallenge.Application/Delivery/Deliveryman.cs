@@ -1,10 +1,13 @@
-﻿using BackendChallenge.CrossCutting.Common;
+﻿using BackendChallenge.Application.Accounts;
+using BackendChallenge.CrossCutting.Common;
 
 namespace BackendChallenge.Application.Delivery;
 public class Deliveryman : Entity<Guid>
 {
-    private Deliveryman(string name, string cnpj, DateTime birthdate, string cnhNumber, CnhType cnhType)
+    private Deliveryman(
+       string accountId, string name, string cnpj, DateTime birthdate, string cnhNumber, CnhType cnhType)
     {
+        AccountId = accountId;
         Name = name;
         Cnpj = cnpj;
         Birthdate = birthdate;
@@ -14,6 +17,7 @@ public class Deliveryman : Entity<Guid>
 
     protected Deliveryman() { }
 
+    public string AccountId { get; private set; }
     public string Name { get; private set; }
     public string Cnpj { get; private set; }
     public DateTime Birthdate { get; private set; }
@@ -21,8 +25,10 @@ public class Deliveryman : Entity<Guid>
     public CnhType CnhType { get; private set; }
     public string? CnhImageUrl { get; private set; }
 
-    public static Deliveryman Create(string name, string cnpj, DateTime birthdate, string cnhNumber, CnhType cnhType) =>
-        new(name, cnpj, birthdate, cnhNumber, cnhType);
+    public Account Account { get; private set; }
+
+    public static Deliveryman Create(string accountId, string name, string cnpj, DateTime birthdate, string cnhNumber, CnhType cnhType) =>
+        new(accountId, name, cnpj, birthdate, cnhNumber, cnhType);
 
     public void UpdateCnhImageUrl(string cnhImageUrl) =>
         CnhImageUrl = cnhImageUrl;

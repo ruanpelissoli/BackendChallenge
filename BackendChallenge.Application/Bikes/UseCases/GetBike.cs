@@ -1,4 +1,5 @@
-﻿using BackendChallenge.CrossCutting.Endpoints;
+﻿using BackendChallenge.Application.Accounts;
+using BackendChallenge.CrossCutting.Endpoints;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -17,7 +18,7 @@ public static class GetBike
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapGet("bikes", Handler)
-               .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" })
+               .RequireAuthorization(new AuthorizeAttribute { Roles = Roles.Admin })
                .WithTags("Bikes");
         }
     }

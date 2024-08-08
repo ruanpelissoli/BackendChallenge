@@ -1,7 +1,9 @@
-﻿using BackendChallenge.CrossCutting;
+﻿using BackendChallenge.Application.Rentals;
+using BackendChallenge.CrossCutting;
 using BackendChallenge.CrossCutting.Endpoints;
 using BackendChallenge.CrossCutting.Middlewares;
 using BackendChallenge.CrossCutting.Storage;
+using Dapper;
 using FluentValidation;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
@@ -42,6 +44,10 @@ public class DependencyInstaller : IDependencyInjectionInstaller
         {
             options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention();
         });
+
+        services.AddScoped<PlanSeed>();
+
+        SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
     }
 
     private static void AddCacheServer(IServiceCollection services, IConfiguration configuration)
@@ -87,6 +93,9 @@ public static class WebApplicationExtensions
 
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         dbContext.Database.Migrate();
+
+        var seeder = scope.ServiceProvider.GetRequiredService<PlanSeed>();
+        seeder.SeedAsync().GetAwaiter().GetResult();
 
         return app;
     }

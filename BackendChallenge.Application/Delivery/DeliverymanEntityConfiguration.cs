@@ -38,6 +38,12 @@ public sealed class DeliverymanEntityConfiguration : IEntityTypeConfiguration<De
             .HasColumnName("cnh_image_url")
             .HasMaxLength(500);
 
+        builder.HasOne(r => r.Account)
+            .WithOne()
+            .HasForeignKey<Deliveryman>(r => r.AccountId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasIndex(deliveryMan => deliveryMan.Cnpj)
             .IsUnique();
 

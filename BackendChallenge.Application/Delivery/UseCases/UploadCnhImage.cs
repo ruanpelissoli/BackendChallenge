@@ -1,5 +1,7 @@
-﻿using BackendChallenge.CrossCutting.Endpoints;
+﻿using BackendChallenge.Application.Accounts;
+using BackendChallenge.CrossCutting.Endpoints;
 using BackendChallenge.CrossCutting.Storage;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +18,7 @@ public static class UploadCnhImage
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapPut("deliveryman/{id}/upload-cnh", Handler)
+               .RequireAuthorization(new AuthorizeAttribute { Roles = Roles.Deliveryman })
                .DisableAntiforgery()
                .WithTags("Deliveryman");
         }
