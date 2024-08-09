@@ -16,7 +16,7 @@ public static class UpdateBikeLicensePlate
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapPut("bikes/{id}", Handler)
+            app.MapPut("api/bikes/{id}", Handler)
                .RequireAuthorization(new AuthorizeAttribute { Roles = Roles.Admin })
                .WithTags("Bikes");
         }

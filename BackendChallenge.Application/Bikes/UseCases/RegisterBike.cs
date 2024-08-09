@@ -28,7 +28,7 @@ public static class RegisterBike
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapPost("bikes", Handler)
+            app.MapPost("api/bikes", Handler)
                .RequireAuthorization(new AuthorizeAttribute { Roles = Roles.Admin })
                .WithTags("Bikes");
         }

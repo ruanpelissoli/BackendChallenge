@@ -17,7 +17,7 @@ public static class RentABike
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapPost("bikes/{bikeId}/plan/{planId}/rent", Handler)
+            app.MapPost("api/rentals/bike/{bikeId}/plan/{planId}", Handler)
                .RequireAuthorization(new AuthorizeAttribute { Roles = Roles.Deliveryman })
                .WithTags("Rentals");
         }

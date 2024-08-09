@@ -17,7 +17,7 @@ public static class UploadCnhImage
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapPut("deliveryman/{id}/upload-cnh", Handler)
+            app.MapPut("api/deliverymen/{id}/upload-cnh", Handler)
                .RequireAuthorization(new AuthorizeAttribute { Roles = Roles.Deliveryman })
                .DisableAntiforgery()
                .WithTags("Deliveryman");

@@ -169,21 +169,21 @@ namespace BackendChallenge.Application.Migrations
                         .HasColumnName("name");
 
                     b.HasKey("Id")
-                        .HasName("pk_delivery_people");
+                        .HasName("pk_deliverymen");
 
                     b.HasIndex("AccountId")
                         .IsUnique()
-                        .HasDatabaseName("ix_delivery_people_account_id");
+                        .HasDatabaseName("ix_deliverymen_account_id");
 
                     b.HasIndex("CnhNumber")
                         .IsUnique()
-                        .HasDatabaseName("ix_delivery_people_cnh_number");
+                        .HasDatabaseName("ix_deliverymen_cnh_number");
 
                     b.HasIndex("Cnpj")
                         .IsUnique()
-                        .HasDatabaseName("ix_delivery_people_cnpj");
+                        .HasDatabaseName("ix_deliverymen_cnpj");
 
-                    b.ToTable("delivery_people", (string)null);
+                    b.ToTable("deliverymen", (string)null);
                 });
 
             modelBuilder.Entity("BackendChallenge.Application.Rentals.Plan", b =>
@@ -264,7 +264,7 @@ namespace BackendChallenge.Application.Migrations
                         .HasForeignKey("BackendChallenge.Application.Delivery.Deliveryman", "AccountId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_delivery_people_asp_net_users_account_id");
+                        .HasConstraintName("fk_deliverymen_asp_net_users_account_id");
 
                     b.Navigation("Account");
                 });

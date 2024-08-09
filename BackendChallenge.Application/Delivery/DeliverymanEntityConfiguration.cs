@@ -6,7 +6,7 @@ public sealed class DeliverymanEntityConfiguration : IEntityTypeConfiguration<De
 {
     public void Configure(EntityTypeBuilder<Deliveryman> builder)
     {
-        builder.ToTable("delivery_people");
+        builder.ToTable("deliverymen");
 
         builder.HasKey(deliveryman => deliveryman.Id);
 

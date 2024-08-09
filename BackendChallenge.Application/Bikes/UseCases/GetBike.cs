@@ -17,7 +17,7 @@ public static class GetBike
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapGet("bikes", Handler)
+            app.MapGet("api/bikes", Handler)
                .RequireAuthorization(new AuthorizeAttribute { Roles = Roles.Admin })
                .WithTags("Bikes");
         }

@@ -22,7 +22,7 @@ public static class CheckRentalTotalCost
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapPost("rental/{rentalId}/return", Handler)
+            app.MapPost("api/rentals/{rentalId}/return", Handler)
                .RequireAuthorization(new AuthorizeAttribute { Roles = Roles.Deliveryman })
                .WithTags("Rentals");
         }

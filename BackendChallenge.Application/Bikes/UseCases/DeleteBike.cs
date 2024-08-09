@@ -12,7 +12,7 @@ public static class DeleteBike
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapDelete("bikes/{id}", Handler)
+            app.MapDelete("api/bikes/{id}", Handler)
                .RequireAuthorization(new AuthorizeAttribute { Roles = Roles.Admin })
                .WithTags("Bikes");
         }

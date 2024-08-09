@@ -12,12 +12,6 @@ services:
       POSTGRES_USER: backend_challenge_user
       POSTGRES_PASSWORD: pg_b4ckendCh@llenge_ruan
       
-  redis:
-    image: redis:latest
-    container_name: redis
-    ports:
-      - "6379:6379"
-      
   backendchallenge-mq:
     image: "rabbitmq:management"
     container_name: "backendchallenge-mq"
@@ -29,9 +23,33 @@ services:
       RABBITMQ_DEFAULT_USER: "guest"
       RABBITMQ_DEFAULT_PASS: "guest"
     volumes:
-      - ./.containers/data/:/var/lib/rabbitmq/mnesia
-      - ./.containers/log/:/var/log/rabbitmq
+      - rabbitmq_data:/var/lib/rabbitmq/mnesia
+      - rabbitmq_data:/var/log/rabbitmq
+      
+  # backendchallenge-api:
+  #   build:
+  #     context: .
+  #     dockerfile: BackendChallenge.Api/Dockerfile
+  #   container_name: backendchallenge-api
+  #   environment:
+  #     ASPNETCORE_ENVIRONMENT: Development
+  #     ConnectionStrings__Database: "Host=postgres;Port=5432;Database=backend_challenge_db;Username=backend_challenge_user;Password=pg_b4ckendCh@llenge_ruan"
+  #     ConnectionStrings__Storage: "DefaultEndpointsProtocol=https;AccountName=backendchallengestorage;AccountKey=TV6XUrtTpA1/N8di3NyandiJPGh3TXv4dQiA3OoP2jI97vk5BkhV9FQGUyBYsV9btuKYo2aOPM51+AStAwuXbQ==;EndpointSuffix=core.windows.net"
+  #     MessageBroker__Host: "backendchallenge-mq"
+  #     MessageBroker__Username: "guest"
+  #     MessageBroker__Password: "guest"
+  #     Jwt__Key: "eyJhbGciOiJIUzI1NiJ9.ew0KICAic3ViIjogIjEyMzQ1Njc4OTAiLA0KICAibmFtZSI6ICJBbmlzaCBOYXRoIiwNCiAgImlhdCI6IDE1MTYyMzkwMjINCn0.PbrFwfVZh_FlZw1LMfuB3ghvBO18HRSGq_uroM5PX_w"
+  #     Jwt__Issuer: "http://localhost:5263"
+  #     Jwt__Audiente: "http://localhost:5263"
+  #   ports:
+  #     - "5263:8080"
+  #   depends_on:
+  #     - postgres
+  #     - backendchallenge-mq
 
 volumes:
   postgres_data:
+    driver: local
+
+  rabbitmq_data:
     driver: local

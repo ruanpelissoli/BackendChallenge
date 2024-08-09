@@ -46,7 +46,7 @@ public static class RegisterDeliveryman
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapPost("deliveryman", Handler)
+            app.MapPost("api/deliverymen", Handler)
                .WithTags("Deliveryman");
         }
     }
@@ -88,8 +88,18 @@ public static class RegisterDeliveryman
             request.CnhNumber,
             request.CnhType);
 
-        await context.Deliveryman.AddAsync(deliveryman);
-        await context.SaveChangesAsync();
+        try
+        {
+            await context.Deliveryman.AddAsync(deliveryman);
+            await context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            await userManager.RemoveFromRoleAsync(account, Roles.Deliveryman);
+            await userManager.DeleteAsync(account);
+            return Results.BadRequest("An error occurred while registering the deliveryman.");
+        }
+
 
         return Results.Ok(deliveryman.Adapt<Response>());
     }

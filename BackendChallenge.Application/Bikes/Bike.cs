@@ -24,5 +24,5 @@ public class Bike : Entity<Guid>
     }
 
     public void UpdateLicensePlate(string licensePlate) =>
-        LicensePlate = licensePlate;
+        LicensePlate = licensePlate.ToUpper();
 }

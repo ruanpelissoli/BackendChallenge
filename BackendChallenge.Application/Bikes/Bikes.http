@@ -1,0 +1,40 @@
+@host = http://localhost:5263/api/bikes
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjJkNzY5NTVhLWRhYjItNDZlYi1iNGFjLTIxM2MwNjBlYzYyNCIsImp0aSI6Ijg2MTExODVhLWE3OTAtNGMxMC1iYmIzLWI1ODc5NTI0ZDM0OCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzU0Njk4MjgxLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjUyNjMiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjUyNjMifQ.TtsIKIkmmg9_x7-di7XGtw4sFGzUAPhwlcbvKiZeDZ0
+
+POST {{host}}/
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "year": 2024,
+  "model": "Yamaha",
+  "licensePlate": "JCA9G52"
+}
+
+###
+
+GET {{host}}?licensePlate=JCA9G52
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+###
+
+GET {{host}}/
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+###
+
+PUT {{host}}/f7c69ddb-764a-4056-95a5-b669d9c1b6b8
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "licensePlate": "JCf9G52"
+}
+
+###
+
+DELETE {{host}}/f7c69ddb-764a-4056-95a5-b669d9c1b6b8
+Content-Type: application/json
+Authorization: Bearer {{token}}

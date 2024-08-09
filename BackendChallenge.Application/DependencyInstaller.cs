@@ -1,4 +1,5 @@
-﻿using BackendChallenge.Application.Rentals;
+﻿using BackendChallenge.Application.Delivery;
+using BackendChallenge.Application.Rentals;
 using BackendChallenge.CrossCutting;
 using BackendChallenge.CrossCutting.Endpoints;
 using BackendChallenge.CrossCutting.Middlewares;
@@ -46,6 +47,7 @@ public class DependencyInstaller : IDependencyInjectionInstaller
         });
 
         services.AddScoped<PlanSeed>();
+        services.AddScoped<DeliverymanSeed>();
 
         SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
     }
@@ -94,8 +96,11 @@ public static class WebApplicationExtensions
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         dbContext.Database.Migrate();
 
-        var seeder = scope.ServiceProvider.GetRequiredService<PlanSeed>();
-        seeder.SeedAsync().GetAwaiter().GetResult();
+        var planSeed = scope.ServiceProvider.GetRequiredService<PlanSeed>();
+        planSeed.SeedAsync().GetAwaiter().GetResult();
+
+        var deliverymanSeed = scope.ServiceProvider.GetRequiredService<DeliverymanSeed>();
+        deliverymanSeed.SeedAsync().GetAwaiter().GetResult();
 
         return app;
     }

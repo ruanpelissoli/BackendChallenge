@@ -1,0 +1,29 @@
+@host = http://localhost:5263/api/deliverymen
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiZGVsaXZlcnltYW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjNlNmI1Nzk0LTI4YTEtNDNmZC05YTAyLWM0MmUxNzk2NWQwOCIsImp0aSI6ImYwNWVjMDI1LTkwOGYtNGU3Mi1iZmQzLWFhNjc1ODY1ZWU2ZSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkRlbGl2ZXltYW4iLCJleHAiOjE3NTQ2OTgyNjAsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6NTI2MyIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NTI2MyJ9.9SggRcOkCu3XkvQBdhyysV-VQGNnzCzvD073GwRdje4
+
+POST {{host}}/
+Content-Type: application/json
+
+{
+  "username": "ruanpelissoli",
+  "password": "Pass123!",
+  "email": "ruanpelissoli@gmail.com",
+  "name": "Ruan Pelissoli",
+  "cnpj": "49419472000172",
+  "birthdate": "1990-08-31T21:17:40.803Z",
+  "cnhNumber": "12345678",
+  "cnhType": 1
+}
+
+###
+
+PUT {{host}}/84f80984-4f9d-42c6-8782-394f62c74353/upload-cnh
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="image"; filename="Screenshot_2.png"
+Content-Type: image/png
+
+< E:\\Code\\Screenshot_2.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
