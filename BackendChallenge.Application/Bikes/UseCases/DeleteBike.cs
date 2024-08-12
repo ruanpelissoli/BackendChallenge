@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 
 namespace BackendChallenge.Application.Bikes.UseCases;
 public static class DeleteBike
@@ -44,6 +45,11 @@ public static class DeleteBike
 
             if (bike is null)
                 return Result.Failure(DomainErrors.NotFound);
+
+            var bikeHasRentalRecord = await context.Rentals.FirstOrDefaultAsync(r => r.BikeId == bike.Id);
+
+            if (bikeHasRentalRecord is not null)
+                return Result.Failure(DomainErrors.BikeHasRentalRecord);
 
             context.Remove(bike);
             await context.SaveChangesAsync(cancellationToken);

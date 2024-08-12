@@ -16,6 +16,7 @@ Steps to run this project
     username: deliveryman
     password: Pass123!
 
+- Plans are also seeded. Check the plans table to get the ids.
 - Use swagger UI to authenticate your resquests, digit: Bearer {token}
 - Azure storage was used to store cnh images
 - Keys are visible, use carefully and after your review I'll delete the resources.
@@ -25,6 +26,7 @@ This project is using vertical slices to organize the code.
 
 Next steps if I had more time:
 
+- Improve logs (serilog)
 - Integration tests with testcontainers
 - Cache with redis
 - More validations
