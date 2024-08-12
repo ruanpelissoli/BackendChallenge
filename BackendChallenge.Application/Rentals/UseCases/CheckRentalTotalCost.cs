@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 
 namespace BackendChallenge.Application.Rentals.UseCases;
 public static class CheckRentalTotalCost
@@ -31,11 +30,9 @@ public static class CheckRentalTotalCost
     public static async Task<IResult> Handler(
         Guid rentalId,
         [FromBody] Request request,
-        ApplicationDbContext context)
+        IRepository repository)
     {
-        var rental = await context.Rentals
-            .Include(r => r.Plan)
-            .FirstOrDefaultAsync(r => r.Id == rentalId);
+        var rental = await repository.GetRentalById(rentalId);
 
         if (rental is null)
             return Results.NotFound();

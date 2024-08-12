@@ -1,24 +1,20 @@
 ﻿using BackendChallenge.Application.Accounts;
-using Microsoft.AspNetCore.Identity;
+using BackendChallenge.CrossCutting.Services;
 
 namespace BackendChallenge.Application.Delivery;
 
 public class DeliverymanSeed(
-    RoleManager<IdentityRole> roleManager,
-    UserManager<Account> userManager,
+    IAccountService<Account> accountService,
     ApplicationDbContext applicationDbContext)
 {
-    private readonly RoleManager<IdentityRole> _roleManager = roleManager;
-    private readonly UserManager<Account> _userManager = userManager;
 
     public async Task SeedAsync()
     {
         var delivererUser = new Account { UserName = "deliveryman", Email = "deliveryman@example.com" };
 
-        if (await _userManager.FindByNameAsync(delivererUser.UserName) == null)
+        if (await accountService.FindByNameAsync(delivererUser.UserName) == null)
         {
-            await _userManager.CreateAsync(delivererUser, "Pass123!");
-            await _userManager.AddToRoleAsync(delivererUser, Roles.Deliveryman);
+            await accountService.CreateAccount(delivererUser, "Pass123!", Roles.Deliveryman);
 
             await applicationDbContext.Deliveryman.AddAsync(Deliveryman.Create(
                 delivererUser.Id,

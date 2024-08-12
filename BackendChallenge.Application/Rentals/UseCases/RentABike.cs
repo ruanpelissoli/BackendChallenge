@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace BackendChallenge.Application.Rentals.UseCases;
@@ -26,7 +25,7 @@ public static class RentABike
     public static async Task<IResult> Handler(
         Guid bikeId,
         Guid planId,
-        ApplicationDbContext context,
+        IRepository repository,
         HttpContext httpContext)
     {
         var accountId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -34,7 +33,7 @@ public static class RentABike
         if (string.IsNullOrEmpty(accountId))
             return Results.Unauthorized();
 
-        var deliveryman = await context.Deliveryman.FirstOrDefaultAsync(d => d.AccountId == accountId);
+        var deliveryman = await repository.GetDelivymanByAccountId(accountId);
 
         if (deliveryman is null)
             return Results.Unauthorized();
@@ -42,12 +41,12 @@ public static class RentABike
         if (deliveryman.CnhType != Delivery.CnhType.A)
             return Results.BadRequest("Only deliveryman with CNH type A can rent a bike.");
 
-        var bike = await context.Bikes.FindAsync(bikeId);
+        var bike = await repository.GetBikeById(bikeId);
 
         if (bike is null)
             return Results.NotFound();
 
-        var plan = await context.Plans.FindAsync(planId);
+        var plan = await repository.GetPlanById(planId);
 
         if (plan is null)
             return Results.NotFound();
@@ -55,26 +54,16 @@ public static class RentABike
         var startDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1));
         var endDate = startDate.AddDays(plan.DurationInDays);
 
-        if (await IsBikeAvailable(bikeId, context, startDate, endDate) is false)
+        if (await repository.IsBikeAvailableForRental(bikeId, startDate, endDate) is false)
             return Results.BadRequest("Bike is not available for the period.");
 
         var rental = Rental.Create(bikeId, deliveryman.Id, planId, plan.TotalValue, startDate, endDate);
 
-        await context.Rentals.AddAsync(rental);
-        await context.SaveChangesAsync();
+        await repository.CreateRental(rental);
+        await repository.Commit();
 
         var response = new Response(rental.Id, rental.StartDate, rental.EndDate, plan.TotalValue, new BikeResponse(bike.Id, bike.Model, bike.Year, bike.LicensePlate));
 
         return Results.Ok(response);
-    }
-
-    private static async Task<bool> IsBikeAvailable(Guid bikeId, ApplicationDbContext context, DateOnly startDate, DateOnly endDate)
-    {
-        var rentals = await context.Rentals
-            .Where(r => r.BikeId == bikeId)
-            .Where(r => r.StartDate <= startDate && r.EndDate >= endDate)
-            .ToListAsync();
-
-        return rentals.Count == 0;
     }
 }

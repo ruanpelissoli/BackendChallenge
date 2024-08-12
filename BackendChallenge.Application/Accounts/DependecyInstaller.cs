@@ -1,4 +1,5 @@
 ﻿using BackendChallenge.CrossCutting;
+using BackendChallenge.CrossCutting.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
@@ -49,6 +50,7 @@ public class DependecyInstaller : IDependencyInjectionInstaller
         });
 
         services.AddScoped<AccountSeed>();
+        services.AddScoped<IAccountService<Account>, AccountService>();
 
         services.AddAuthorization();
         services.AddAntiforgery();

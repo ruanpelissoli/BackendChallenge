@@ -1,8 +1,8 @@
 ﻿using BackendChallenge.CrossCutting.Endpoints;
+using BackendChallenge.CrossCutting.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
@@ -36,7 +36,7 @@ public static class Login
 
     public static async Task<IResult> Handler(
         [FromBody] Request request,
-        UserManager<Account> _userManager,
+        IAccountService<Account> accountService,
         IConfiguration configuration,
         IValidator<Request> validator)
     {
@@ -47,15 +47,15 @@ public static class Login
             return Results.BadRequest(validationResult.Errors);
         }
 
-        var user = await _userManager.FindByNameAsync(request.Username);
-        if (user != null && await _userManager.CheckPasswordAsync(user, request.Password))
+        var account = await accountService.FindByNameAsync(request.Username);
+        if (account != null && await accountService.CheckPasswordAsync(account, request.Password))
         {
-            var userRoles = await _userManager.GetRolesAsync(user);
+            var userRoles = await accountService.GetRolesAsync(account);
 
             var authClaims = new List<Claim>
             {
-                new(ClaimTypes.Name, user.UserName!),
-                new(ClaimTypes.NameIdentifier, user.Id),
+                new(ClaimTypes.Name, account.UserName!),
+                new(ClaimTypes.NameIdentifier, account.Id),
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 

@@ -1,10 +1,10 @@
 ﻿using BackendChallenge.Application.Accounts;
 using BackendChallenge.CrossCutting.Endpoints;
+using BackendChallenge.CrossCutting.Services;
 using FluentValidation;
 using Mapster;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
 
 namespace BackendChallenge.Application.Delivery.UseCases;
@@ -54,7 +54,7 @@ public static class RegisterDeliveryman
     public static async Task<IResult> Handler(
         Request request,
         ApplicationDbContext context,
-        UserManager<Account> userManager,
+        IAccountService<Account> accountService,
         IValidator<Request> validator)
     {
         var validationResult = await validator.ValidateAsync(request);
@@ -70,15 +70,10 @@ public static class RegisterDeliveryman
             Email = request.Email,
         };
 
-        var result = await userManager.CreateAsync(account, request.Password);
+        var result = await accountService.CreateAccount(account, request.Password, Roles.Deliveryman);
 
-        if (!result.Succeeded)
-            return Results.BadRequest(result.Errors);
-
-        await userManager.AddToRoleAsync(account, Roles.Deliveryman);
-
-        if (!result.Succeeded)
-            return Results.BadRequest(result.Errors);
+        if (result is null)
+            return Results.BadRequest("Failed to create account");
 
         var deliveryman = Deliveryman.Create(
             account.Id,
@@ -93,10 +88,10 @@ public static class RegisterDeliveryman
             await context.Deliveryman.AddAsync(deliveryman);
             await context.SaveChangesAsync();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            await userManager.RemoveFromRoleAsync(account, Roles.Deliveryman);
-            await userManager.DeleteAsync(account);
+            await accountService.RemoveFromRoleAsync(account, Roles.Deliveryman);
+            await accountService.DeleteAsync(account);
             return Results.BadRequest("An error occurred while registering the deliveryman.");
         }
 

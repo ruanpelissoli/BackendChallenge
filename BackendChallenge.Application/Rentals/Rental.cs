@@ -39,4 +39,6 @@ public class Rental : Entity<Guid>
         DateOnly endDate) =>
         new(bikeId, deliverymanId, planId, totalCost, startDate, endDate);
 
+    public void SetPlan(Plan plan) => Plan = plan;
+
 }
