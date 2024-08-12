@@ -1,69 +1,74 @@
 ﻿using BackendChallenge.Application.Accounts;
+using BackendChallenge.Application.Rentals.Services;
+using BackendChallenge.CrossCutting.Abstractions;
+using BackendChallenge.CrossCutting.Common;
 using BackendChallenge.CrossCutting.Endpoints;
+using FluentValidation;
+using Mapster;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
 namespace BackendChallenge.Application.Rentals.UseCases;
 public static class CheckRentalTotalCost
 {
     public record Request(DateTime ReturnDate);
-
+    public record HandlerRequest(Guid RentalId, DateTime ReturnDate) : ICommand<Response>;
     public record Response(
         decimal DaysUsedCost,
         decimal FineCostPerDaysRemaining,
         decimal CostPerAdditionalDays,
         decimal TotalCost);
 
+    public class HandlerRequestValidator : AbstractValidator<HandlerRequest>
+    {
+        public HandlerRequestValidator()
+        {
+            RuleFor(r => r.RentalId).NotEmpty();
+            RuleFor(r => r.ReturnDate).NotEmpty();
+        }
+    }
+
     public sealed class Endpoint : IEndpoint
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapPost("api/rentals/{rentalId}/return", Handler)
+            app.MapPost("api/rentals/{rentalId}/return",
+                async (Guid rentalId, Request request, ISender sender, CancellationToken cancellationToken) =>
+                {
+                    var handlerRequest = new HandlerRequest(rentalId, request.ReturnDate);
+
+                    var result = await sender.Send(handlerRequest, cancellationToken);
+
+                    if (result.IsFailure)
+                        return Results.BadRequest(result);
+
+                    return Results.Ok(result);
+
+                })
                .RequireAuthorization(new AuthorizeAttribute { Roles = Roles.Deliveryman })
                .WithTags("Rentals");
         }
     }
 
-    public static async Task<IResult> Handler(
-        Guid rentalId,
-        [FromBody] Request request,
-        IRepository repository)
+    internal sealed class Handler(
+        IBikeRentalReturnCalculation bikeRentalReturnCalculation,
+        IRepository repository) : ICommandHandler<HandlerRequest, Response>
     {
-        var rental = await repository.GetRentalById(rentalId);
-
-        if (rental is null)
-            return Results.NotFound();
-
-        var returnDate = DateOnly.FromDateTime(request.ReturnDate);
-
-        if (returnDate < rental.EndDate)
+        public async Task<Result<Response>> Handle(HandlerRequest request, CancellationToken cancellationToken)
         {
-            var remainingDaysToFine = rental.EndDate.DayNumber - returnDate.DayNumber;
-            var daysUsedToCharge = returnDate.DayNumber - rental.StartDate.DayNumber;
+            var rental = await repository.GetRentalById(request.RentalId);
 
-            var daysUsedCost = daysUsedToCharge * rental.Plan.CostPerDay;
-            var fineCostPerDaysRemaining = (remainingDaysToFine * rental.Plan.CostPerDay) * (rental.Plan.FineCostPercentagePerDay / 100);
-            var costPerAdditionalDays = 0M;
+            if (rental is null)
+                return Result.Failure<Response>(DomainErrors.NotFound);
 
-            var totalCost = daysUsedCost + fineCostPerDaysRemaining + costPerAdditionalDays;
+            var returnDate = DateOnly.FromDateTime(request.ReturnDate);
 
-            return Results.Ok(new Response(daysUsedCost, fineCostPerDaysRemaining, costPerAdditionalDays, totalCost));
-        }
+            var calculation = bikeRentalReturnCalculation.CalculateTotalCost(returnDate, rental);
 
-        {
-            var daysUsedToCharge = rental.Plan.DurationInDays;
-            var additionalDays = returnDate.DayNumber - rental.EndDate.DayNumber;
-
-            var daysUsedCost = daysUsedToCharge * rental.Plan.CostPerDay;
-            var fineCostPerDaysRemaining = 0M;
-            var costPerAdditionalDays = additionalDays * 50M;
-
-            var totalCost = daysUsedCost + fineCostPerDaysRemaining + costPerAdditionalDays;
-
-            return Results.Ok(new Response(daysUsedCost, fineCostPerDaysRemaining, costPerAdditionalDays, totalCost));
+            return calculation.Adapt<Response>();
         }
     }
 }

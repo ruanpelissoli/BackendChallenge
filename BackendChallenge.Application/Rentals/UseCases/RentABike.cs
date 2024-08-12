@@ -1,5 +1,8 @@
 ﻿using BackendChallenge.Application.Accounts;
+using BackendChallenge.CrossCutting.Abstractions;
+using BackendChallenge.CrossCutting.Common;
 using BackendChallenge.CrossCutting.Endpoints;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -9,6 +12,7 @@ using System.Security.Claims;
 namespace BackendChallenge.Application.Rentals.UseCases;
 public static class RentABike
 {
+    public record HandlerRequest(Guid BikeId, Guid PlanId, string AccountId) : ICommand<Response>;
     public record Response(Guid RentalId, DateOnly StartDate, DateOnly EndDate, decimal TotalValue, BikeResponse Bike);
     public record BikeResponse(Guid BikeId, string Model, int Year, string LicensePlate);
 
@@ -16,54 +20,75 @@ public static class RentABike
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapPost("api/rentals/bike/{bikeId}/plan/{planId}", Handler)
-               .RequireAuthorization(new AuthorizeAttribute { Roles = Roles.Deliveryman })
-               .WithTags("Rentals");
+            app.MapPost("api/rentals/bike/{bikeId}/plan/{planId}", async (
+                Guid bikeId,
+                Guid planId,
+                ISender sender,
+                HttpContext httpContext,
+                CancellationToken cancellationToken) =>
+            {
+                var accountId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(accountId))
+                    return Results.Unauthorized();
+
+                var handlerRequest = new HandlerRequest(bikeId, planId, accountId);
+
+                var result = await sender.Send(handlerRequest, cancellationToken);
+
+                if (result.IsFailure)
+                    return Results.BadRequest(result);
+
+                return Results.Ok(result);
+
+            })
+            .RequireAuthorization(new AuthorizeAttribute { Roles = Roles.Deliveryman })
+            .WithTags("Rentals");
         }
     }
 
-    public static async Task<IResult> Handler(
-        Guid bikeId,
-        Guid planId,
-        IRepository repository,
-        HttpContext httpContext)
+    internal sealed class Handler(
+        IRepository repository) : ICommandHandler<HandlerRequest, Response>
     {
-        var accountId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        public async Task<Result<Response>> Handle(HandlerRequest request, CancellationToken cancellationToken)
+        {
+            var deliveryman = await repository.GetDelivymanByAccountId(request.AccountId);
 
-        if (string.IsNullOrEmpty(accountId))
-            return Results.Unauthorized();
+            if (deliveryman is null)
+                return Result.Failure<Response>(DomainErrors.NotFound);
 
-        var deliveryman = await repository.GetDelivymanByAccountId(accountId);
+            if (deliveryman.CnhType != Delivery.CnhType.A)
+                return Result.Failure<Response>(DomainErrors.InvalidCnhType);
 
-        if (deliveryman is null)
-            return Results.Unauthorized();
+            var bike = await repository.GetBikeById(request.BikeId);
 
-        if (deliveryman.CnhType != Delivery.CnhType.A)
-            return Results.BadRequest("Only deliveryman with CNH type A can rent a bike.");
+            if (bike is null)
+                return Result.Failure<Response>(DomainErrors.NotFound);
 
-        var bike = await repository.GetBikeById(bikeId);
+            var plan = await repository.GetPlanById(request.PlanId);
 
-        if (bike is null)
-            return Results.NotFound();
+            if (plan is null)
+                return Result.Failure<Response>(DomainErrors.NotFound);
 
-        var plan = await repository.GetPlanById(planId);
+            var startDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1));
+            var endDate = startDate.AddDays(plan.DurationInDays);
 
-        if (plan is null)
-            return Results.NotFound();
+            if (await repository.IsBikeAvailableForRental(request.BikeId, startDate, endDate) is false)
+                return Result.Failure<Response>(DomainErrors.BikeNotAvailable);
 
-        var startDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1));
-        var endDate = startDate.AddDays(plan.DurationInDays);
+            var rental = Rental.Create(request.BikeId, deliveryman.Id, request.PlanId, plan.TotalValue, startDate, endDate);
 
-        if (await repository.IsBikeAvailableForRental(bikeId, startDate, endDate) is false)
-            return Results.BadRequest("Bike is not available for the period.");
+            await repository.CreateRental(rental);
+            await repository.Commit();
 
-        var rental = Rental.Create(bikeId, deliveryman.Id, planId, plan.TotalValue, startDate, endDate);
+            var response = new Response(
+                rental.Id,
+                rental.StartDate,
+                rental.EndDate,
+                plan.TotalValue,
+                new BikeResponse(bike.Id, bike.Model, bike.Year, bike.LicensePlate));
 
-        await repository.CreateRental(rental);
-        await repository.Commit();
-
-        var response = new Response(rental.Id, rental.StartDate, rental.EndDate, plan.TotalValue, new BikeResponse(bike.Id, bike.Model, bike.Year, bike.LicensePlate));
-
-        return Results.Ok(response);
+            return response;
+        }
     }
 }

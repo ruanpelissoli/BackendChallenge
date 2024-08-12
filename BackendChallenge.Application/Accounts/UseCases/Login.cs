@@ -1,9 +1,11 @@
-﻿using BackendChallenge.CrossCutting.Endpoints;
+﻿using BackendChallenge.CrossCutting.Abstractions;
+using BackendChallenge.CrossCutting.Common;
+using BackendChallenge.CrossCutting.Endpoints;
 using BackendChallenge.CrossCutting.Services;
 using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -14,9 +16,10 @@ using System.Text;
 namespace BackendChallenge.Application.Accounts.UseCases;
 public static class Login
 {
-    public record Request(string Username, string Password);
+    public record HandlerRequest(string Username, string Password) : ICommand<Response>;
+    public record Response(string Token, DateTime Expiration);
 
-    public sealed class Validator : AbstractValidator<Request>
+    public sealed class Validator : AbstractValidator<HandlerRequest>
     {
         public Validator()
         {
@@ -29,27 +32,33 @@ public static class Login
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapPost("api/account/login", Handler)
-               .WithTags("Account");
+            app.MapPost("api/account/login", async (
+                HandlerRequest request,
+                ISender sender,
+                CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(request, cancellationToken);
+
+                if (result.IsFailure)
+                    return Results.BadRequest(result);
+
+                return Results.Ok(result);
+            })
+            .WithTags("Account");
         }
     }
 
-    public static async Task<IResult> Handler(
-        [FromBody] Request request,
+    internal sealed class Handler(
         IAccountService<Account> accountService,
-        IConfiguration configuration,
-        IValidator<Request> validator)
+        IConfiguration configuration) : ICommandHandler<HandlerRequest, Response>
     {
-        var validationResult = await validator.ValidateAsync(request);
-
-        if (!validationResult.IsValid)
+        public async Task<Result<Response>> Handle(HandlerRequest request, CancellationToken cancellationToken)
         {
-            return Results.BadRequest(validationResult.Errors);
-        }
+            var account = await accountService.FindByNameAsync(request.Username);
 
-        var account = await accountService.FindByNameAsync(request.Username);
-        if (account != null && await accountService.CheckPasswordAsync(account, request.Password))
-        {
+            if (account == null || !await accountService.CheckPasswordAsync(account, request.Password))
+                return Result.Failure<Response>(DomainErrors.LoginError);
+
             var userRoles = await accountService.GetRolesAsync(account);
 
             var authClaims = new List<Claim>
@@ -74,12 +83,9 @@ public static class Login
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
             );
 
-            return Results.Ok(new
-            {
-                token = new JwtSecurityTokenHandler().WriteToken(token),
-                expiration = token.ValidTo
-            });
+            return Result.Success(new Response(
+                new JwtSecurityTokenHandler().WriteToken(token),
+                token.ValidTo));
         }
-        return Results.Unauthorized();
     }
 }

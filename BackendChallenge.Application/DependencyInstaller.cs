@@ -18,8 +18,8 @@ public class DependencyInstaller : IDependencyInjectionInstaller
     public void Install(IServiceCollection services, IConfiguration configuration)
     {
         services.AddEndpoints(typeof(DependencyInstaller).Assembly);
-        services.AddValidatorsFromAssembly(typeof(DependencyInstaller).Assembly);
 
+        AddMessaging(services);
         AddInfrastructureServices(services, configuration);
     }
 
@@ -33,6 +33,19 @@ public class DependencyInstaller : IDependencyInjectionInstaller
         AddDatabase(services, configuration);
         AddCacheServer(services, configuration);
         AddMassTransit(services, configuration);
+    }
+
+    private static void AddMessaging(IServiceCollection services)
+    {
+        services.AddMediatR(configuration =>
+        {
+            configuration.RegisterServicesFromAssembly(typeof(DependencyInstaller).Assembly);
+
+            configuration.AddOpenBehavior(typeof(LoggingMiddleware<,>));
+            configuration.AddOpenBehavior(typeof(ValidationMiddleware<,>));
+        });
+
+        services.AddValidatorsFromAssembly(typeof(DependencyInstaller).Assembly);
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration configuration)

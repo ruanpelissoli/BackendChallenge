@@ -9,8 +9,8 @@ public class PlanSeed(ApplicationDbContext context)
 
         List<Plan> plans =
         [
-            new(7, 30.00M, 20.00M),
-            new(15, 28.00M, 40.00M),
+            new(7, 30.00M, 0.2M),
+            new(15, 28.00M, 0.4M),
             new(30, 22.00M),
             new(45, 20.00M),
             new(50, 18.00M),

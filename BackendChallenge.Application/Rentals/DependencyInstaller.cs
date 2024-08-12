@@ -1,4 +1,5 @@
-﻿using BackendChallenge.CrossCutting;
+﻿using BackendChallenge.Application.Rentals.Services;
+using BackendChallenge.CrossCutting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,5 +9,6 @@ public class DependencyInstaller : IDependencyInjectionInstaller
     public void Install(IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<IRepository, Repository>();
+        services.AddScoped<IBikeRentalReturnCalculation, BikeRentalReturnCalculation>();
     }
 }
